@@ -811,71 +811,72 @@ class ZoomLineSearch(base.IterativeLineSearch):
     return ~(state.done | state.failed)
 
   def _log_info(self, stepsize, state):
-    jax.debug.print(
-        "INFO: jaxopt.ZoomLineSearch: " + \
-        "Iter: {iter}, " + \
-        "Stepsize: {stepsize}, " + \
-        "Decrease error: {decrease_error}, " + \
-        "Curvature error: {curvature_error}",
-        iter=state.iter_num,
-        stepsize=stepsize,
-        decrease_error=state.decrease_error,
-        curvature_error=state.curvature_error
-    )
+    # jax.debug.print(
+    #     "INFO: jaxopt.ZoomLineSearch: " + \
+    #     "Iter: {iter}, " + \
+    #     "Stepsize: {stepsize}, " + \
+    #     "Decrease error: {decrease_error}, " + \
+    #     "Curvature error: {curvature_error}",
+    #     iter=state.iter_num,
+    #     stepsize=stepsize,
+    #     decrease_error=state.decrease_error,
+    #     curvature_error=state.curvature_error
+    # )
+    return None
 
   def failure_diagnostic(self, safe_stepsize, stepsize, state):
-    jax.debug.print(FLAG_NO_STEPSIZE_FOUND)
+    # jax.debug.print(FLAG_NO_STEPSIZE_FOUND)
     self._log_info(stepsize, state)
 
     slope_init = state.slope_init
     is_descent_dir = slope_init < 0.
-    _cond_print(
-      ~is_descent_dir,
-      FLAG_NOT_A_DESCENT_DIRECTION + \
-      "The slope (={slope_init}) at stepsize=0 should be negative",
-      slope_init=slope_init
-    )
-    _cond_print(
-      is_descent_dir,
-      WARNING_PREAMBLE + \
-      "Consider augmenting the maximal number of linesearch iterations."
-    )
+    # _cond_print(
+    #   ~is_descent_dir,
+    #   FLAG_NOT_A_DESCENT_DIRECTION + \
+    #   "The slope (={slope_init}) at stepsize=0 should be negative",
+    #   slope_init=slope_init
+    # )
+    # _cond_print(
+    #   is_descent_dir,
+    #   WARNING_PREAMBLE + \
+    #   "Consider augmenting the maximal number of linesearch iterations."
+    # )
     eps = jnp.finfo(stepsize).eps
     below_eps = stepsize < eps
-    _cond_print(
-      below_eps & is_descent_dir,
-      WARNING_PREAMBLE + \
-      "Computed stepsize (={stepsize}) " + \
-      "is below machine precision (={eps}), " +\
-      "consider passing to higher precision like x64, using " +\
-      "jax.config.update('jax_enable_x64', True).",
-      stepsize=stepsize, 
-      eps=eps
-    )
+    # _cond_print(
+    #   below_eps & is_descent_dir,
+    #   WARNING_PREAMBLE + \
+    #   "Computed stepsize (={stepsize}) " + \
+    #   "is below machine precision (={eps}), " +\
+    #   "consider passing to higher precision like x64, using " +\
+    #   "jax.config.update('jax_enable_x64', True).",
+    #   stepsize=stepsize, 
+    #   eps=eps
+    # )
     abs_slope_init = jnp.abs(slope_init)
     high_slope = abs_slope_init > 1e16
-    _cond_print(
-      high_slope & is_descent_dir,
-      WARNING_PREAMBLE + \
-      "Very large absolute slope at stepsize=0. (|slope|={abs_slope_init}). " + \
-      "The objective is badly conditioned. " + \
-      "Consider reparameterizing objective (e.g., normalizing parameters) " + \
-      "or finding a better guess for the initial parameters for the solver.",
-      abs_slope_init=abs_slope_init
-    )
+    # _cond_print(
+    #   high_slope & is_descent_dir,
+    #   WARNING_PREAMBLE + \
+    #   "Very large absolute slope at stepsize=0. (|slope|={abs_slope_init}). " + \
+    #   "The objective is badly conditioned. " + \
+    #   "Consider reparameterizing objective (e.g., normalizing parameters) " + \
+    #   "or finding a better guess for the initial parameters for the solver.",
+    #   abs_slope_init=abs_slope_init
+    # )
     outside_domain = jnp.isinf(state.decrease_error)
-    _cond_print(
-      outside_domain,
-      WARNING_PREAMBLE + \
-      "Cannot even make a step without getting Inf or Nan. " + \
-      "The linesearch won't make a step and the optimizer is stuck."
-    )
-    _cond_print(
-      ~outside_domain,
-      WARNING_PREAMBLE + \
-      "Making an unsafe step, not decreasing enough the objective. " + \
-      "Convergence of the solver is compromised as it does not reduce values."
-    )
+    # _cond_print(
+    #   outside_domain,
+    #   WARNING_PREAMBLE + \
+    #   "Cannot even make a step without getting Inf or Nan. " + \
+    #   "The linesearch won't make a step and the optimizer is stuck."
+    # )
+    # _cond_print(
+    #   ~outside_domain,
+    #   WARNING_PREAMBLE + \
+    #   "Making an unsafe step, not decreasing enough the objective. " + \
+    #   "Convergence of the solver is compromised as it does not reduce values."
+    # )
     final_stepsize = jnp.where(outside_domain, safe_stepsize, stepsize)
     return final_stepsize
 
